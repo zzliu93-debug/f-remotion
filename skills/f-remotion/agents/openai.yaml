@@ -1,0 +1,4 @@
+interface:
+  display_name: "F Remotion"
+  short_description: "直接套用已确认 V4 风格制作 Remotion 画中动效"
+  default_prompt: "使用 $f-remotion。"

@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+node_modules/
+dist/
+*.log
+analysis/
+*.mp4
+*.mov
+*.mkv
+*.wav
+*.mp3
