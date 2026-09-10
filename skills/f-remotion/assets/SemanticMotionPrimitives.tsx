@@ -306,3 +306,379 @@ export const GrowLine: React.FC<{
     />
   );
 };
+
+export type WholeWordToken = {
+  text: string;
+  accent?: string;
+};
+
+export const WholeWordCascade: React.FC<{
+  tokens: Array<string | WholeWordToken>;
+  start: number;
+  stepFrames?: number;
+  enterFrames?: number;
+  gap?: number;
+  name?: string;
+  style?: CSSProperties;
+  tokenStyle?: CSSProperties;
+}> = ({
+  tokens,
+  start,
+  stepFrames = 9,
+  enterFrames = 30,
+  gap = 18,
+  name = "Whole-word cascade",
+  style,
+  tokenStyle,
+}) => {
+  const frame = useCurrentFrame();
+
+  return (
+    <Interactive.Div
+      name={name}
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "baseline",
+        gap,
+        fontFamily: F_REMOTION_FONT,
+        ...style,
+      }}
+    >
+      {tokens.map((token, index) => {
+        const normalized = typeof token === "string" ? {text: token} : token;
+        const itemStart = start + index * stepFrames;
+        return (
+          <span
+            key={`${normalized.text}-${index}`}
+            style={{
+              display: "inline-block",
+              color: normalized.accent ?? "white",
+              opacity: interpolate(frame, [itemStart, itemStart + enterFrames * 0.75], [0, 1], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: EASE_OUT,
+              }),
+              translate: interpolate(frame, [itemStart, itemStart + enterFrames], ["0px 16px", "0px 0px"], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: EASE_OUT,
+              }),
+              scale: interpolate(frame, [itemStart, itemStart + enterFrames], [0.97, 1], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: EASE_OUT,
+                output: "perceptual-scale",
+              }),
+              transformOrigin: "left center",
+              ...tokenStyle,
+            }}
+          >
+            {normalized.text}
+          </span>
+        );
+      })}
+    </Interactive.Div>
+  );
+};
+
+export const StateSwap: React.FC<{
+  before: ReactNode;
+  after: ReactNode;
+  start: number;
+  switchAt: number;
+  fadeFrames?: number;
+  distance?: number;
+  name?: string;
+  style?: CSSProperties;
+}> = ({
+  before,
+  after,
+  start,
+  switchAt,
+  fadeFrames = 22,
+  distance = 20,
+  name = "State swap",
+  style,
+}) => {
+  const frame = useCurrentFrame();
+  const beforeEntered = interpolate(frame, [start, start + 18], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE_OUT,
+  });
+  const beforeLeaving = interpolate(frame, [switchAt - fadeFrames, switchAt], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.7, 0, 0.84, 0),
+  });
+  const beforeOpacity = Math.min(beforeEntered, beforeLeaving);
+  const afterOpacity = interpolate(frame, [switchAt, switchAt + fadeFrames], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE_OUT,
+  });
+
+  return (
+    <Interactive.Div
+      name={name}
+      style={{
+        position: "relative",
+        display: "grid",
+        fontFamily: F_REMOTION_FONT,
+        ...style,
+      }}
+    >
+      <div
+        style={{
+          gridArea: "1 / 1",
+          opacity: beforeOpacity,
+          translate: interpolate(frame, [switchAt - fadeFrames, switchAt], ["0px 0px", `${-distance}px 0px`], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: Easing.bezier(0.7, 0, 0.84, 0),
+          }),
+        }}
+      >
+        {before}
+      </div>
+      <div
+        style={{
+          gridArea: "1 / 1",
+          opacity: afterOpacity,
+          translate: interpolate(frame, [switchAt, switchAt + fadeFrames], [`${distance}px 0px`, "0px 0px"], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: EASE_OUT,
+          }),
+        }}
+      >
+        {after}
+      </div>
+    </Interactive.Div>
+  );
+};
+
+export type PhaseRailItem = {
+  label: string;
+  at: number;
+  detail?: string;
+  accent?: string;
+};
+
+export const PhaseRail: React.FC<{
+  items: PhaseRailItem[];
+  end: number;
+  name?: string;
+  style?: CSSProperties;
+}> = ({items, end, name = "Semantic phase rail", style}) => {
+  const frame = useCurrentFrame();
+
+  return (
+    <Interactive.Div
+      name={name}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 14,
+        fontFamily: F_REMOTION_FONT,
+        ...style,
+      }}
+    >
+      {items.map((item, index) => {
+        const nextAt = Math.max(items[index + 1]?.at ?? end, item.at + 24);
+        const accent = item.accent ?? DEFAULT_ACCENT;
+        const active = interpolate(
+          frame,
+          [item.at, item.at + 16, nextAt - 12, nextAt],
+          [0, 1, 1, 0],
+          {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: [EASE_OUT, Easing.linear, Easing.bezier(0.7, 0, 0.84, 0)],
+          },
+        );
+        const entered = interpolate(frame, [item.at, item.at + 24], [0, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+          easing: EASE_OUT,
+        });
+
+        return (
+          <div
+            key={`${item.label}-${index}`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              minHeight: 78,
+              padding: "14px 18px",
+              borderRadius: 13,
+              border: `1px solid ${accent}`,
+              backgroundColor: `rgba(5,7,13,${0.66 + active * 0.18})`,
+              boxShadow: `0 0 ${10 + active * 14}px ${accent}${active > 0.5 ? "42" : "1f"}`,
+              opacity: entered,
+              translate: interpolate(frame, [item.at, item.at + 30], ["-24px 0px", "0px 0px"], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: EASE_OUT,
+              }),
+            }}
+          >
+            <div style={{width: 4, alignSelf: "stretch", borderRadius: 4, backgroundColor: accent, opacity: 0.45 + active * 0.55}} />
+            <div style={{marginLeft: 18}}>
+              <div style={{color: "white", fontSize: 28, fontWeight: 900}}>{item.label}</div>
+              {item.detail ? (
+                <div style={{marginTop: 5, color: "rgba(255,255,255,0.62)", fontSize: 18, fontWeight: 700}}>
+                  {item.detail}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        );
+      })}
+    </Interactive.Div>
+  );
+};
+
+export const ConfirmationStamp: React.FC<{
+  text: string;
+  start: number;
+  accent?: string;
+  name?: string;
+  style?: CSSProperties;
+}> = ({text, start, accent = F_REMOTION_COLORS.green, name = "Confirmation", style}) => {
+  const frame = useCurrentFrame();
+
+  return (
+    <Interactive.Div
+      name={name}
+      style={{
+        display: "inline-flex",
+        padding: "11px 18px",
+        border: `2px solid ${accent}`,
+        borderRadius: 7,
+        color: accent,
+        backgroundColor: "rgba(5,7,13,0.80)",
+        boxShadow: `0 0 18px ${accent}30`,
+        fontFamily: F_REMOTION_FONT,
+        fontSize: 22,
+        fontWeight: 950,
+        letterSpacing: 4,
+        opacity: interpolate(frame, [start, start + 22], [0, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+          easing: EASE_OUT,
+        }),
+        translate: interpolate(frame, [start, start + 32], ["0px 14px", "0px 0px"], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+          easing: EASE_OUT,
+        }),
+        scale: interpolate(frame, [start, start + 32], [0.96, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+          easing: EASE_OUT,
+          output: "perceptual-scale",
+        }),
+        rotate: interpolate(frame, [start, start + 32], ["2deg", "-1deg"], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+          easing: EASE_OUT,
+        }),
+        ...style,
+      }}
+    >
+      {text}
+    </Interactive.Div>
+  );
+};
+
+export const CountUpValue: React.FC<{
+  from?: number;
+  to: number;
+  start: number;
+  durationInFrames?: number;
+  decimals?: number;
+  prefix?: string;
+  suffix?: string;
+  name?: string;
+  style?: CSSProperties;
+}> = ({
+  from = 0,
+  to,
+  start,
+  durationInFrames = 42,
+  decimals = 0,
+  prefix = "",
+  suffix = "",
+  name = "Verified count-up value",
+  style,
+}) => {
+  const frame = useCurrentFrame();
+  const raw = interpolate(frame, [start, start + durationInFrames], [from, to], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE_OUT,
+  });
+  const factor = 10 ** decimals;
+  const value = Math.round(raw * factor) / factor;
+
+  return (
+    <Interactive.Div name={name} style={{fontFamily: F_REMOTION_FONT, fontVariantNumeric: "tabular-nums", ...style}}>
+      {prefix}
+      {value.toLocaleString("zh-CN", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })}
+      {suffix}
+    </Interactive.Div>
+  );
+};
+
+export const MetricBar: React.FC<{
+  label: string;
+  value: number;
+  max: number;
+  start: number;
+  accent?: string;
+  valueLabel?: string;
+  name?: string;
+  style?: CSSProperties;
+}> = ({
+  label,
+  value,
+  max,
+  start,
+  accent = DEFAULT_ACCENT,
+  valueLabel,
+  name = "Verified metric bar",
+  style,
+}) => {
+  const frame = useCurrentFrame();
+  const progress = interpolate(frame, [start, start + 34], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE_OUT,
+  });
+  const ratio = Math.max(0, Math.min(1, max === 0 ? 0 : value / max));
+
+  return (
+    <Interactive.Div name={name} style={{fontFamily: F_REMOTION_FONT, ...style}}>
+      <div style={{display: "flex", justifyContent: "space-between", alignItems: "baseline"}}>
+        <div style={{color: "white", fontSize: 24, fontWeight: 850}}>{label}</div>
+        {valueLabel ? <div style={{color: accent, fontSize: 21, fontWeight: 900}}>{valueLabel}</div> : null}
+      </div>
+      <div style={{height: 8, marginTop: 12, overflow: "hidden", borderRadius: 8, backgroundColor: "rgba(255,255,255,0.12)"}}>
+        <div
+          style={{
+            width: `${ratio * progress * 100}%`,
+            height: "100%",
+            borderRadius: 8,
+            backgroundColor: accent,
+            boxShadow: `0 0 12px ${accent}66`,
+          }}
+        />
+      </div>
+    </Interactive.Div>
+  );
+};

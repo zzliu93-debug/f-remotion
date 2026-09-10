@@ -1,11 +1,21 @@
 ---
 name: f-remotion
-description: 将目标视频和 SRT/字幕制作成内置 F Remotion 风格的 Remotion 画中动效。默认直接复用用户已确认的 V4 视觉与运动方案：左侧暗部渐变、中文信息层级、蓝绿红黄细描边暗卡、柔和帧动画、语义驱动的标题/流程/步骤/清单/边界/结论场景，以及严格无交叠的字幕同步时间轴；不需要用户再次提供参考视频。适用于新的口播、教程和知识视频，或继续调整采用该固定风格的 Remotion 项目。仅当用户明确要求更换风格时才分析其他参考片。
+description: 将目标视频和 SRT/字幕制作成以用户确认的 V4 为视觉基因、能按台词语义自主匹配或创造表现方式的 Remotion 画中动效。保留 V4 的中文层级、暗部渐变、细描边暗卡、柔和帧动画和无交叠时间轴，但不把现有场景当成封闭模板；可从可选动效库组合、变形或新写 Remotion 动效，并主动判断某句是否根本不需要动效。无需再次提供参考视频；外部参考只用于提炼可迁移能力，不得硬套其话题、素材或组件。适用于口播、教程、知识视频和现有 F Remotion 项目的制作与迭代。
 ---
 
 # F Remotion
 
-默认应用已经确认满意的 V4 风格预设。不要询问参考视频；目标视频和字幕就是正常输入，Skill 内置的样板、参数和源码快照就是风格依据。
+默认以已经确认满意的 V4 为视觉基因。不要询问参考视频；目标视频和字幕就是正常输入，Skill 内置样板是风格依据，但不是固定版式清单。
+
+当任务是继续优化 `f-remotion` Skill 本身，而不是用它制作视频时，额外读取 [HANDOFF.md](HANDOFF.md) 了解已确认决策、失败方向和最近验证状态。普通视频任务不要加载该维护文件。
+
+## 核心定位
+
+- 固定的是 V4 的信息层级、空间秩序、材质、色彩语义和运动手感，不是六段结构或八种组件。
+- 先理解人物在说什么，再决定不做、复用、变通还是新创；“没有动效”是合法且常常更好的选择。
+- 新动效必须让关系更清楚、情绪更准确或重点更有力。仅仅显得丰富、科技或新颖，不构成使用理由。
+- 允许直接编写新的 Remotion 组件。只要遵守 V4 视觉基因、台词时间和画面安全区，就不受现有原型限制。
+- 从参考视频学习“能力”，不把参考视频的每个组件塞进当前项目。用户确认过的结果才能进入稳定基线。
 
 ## 默认输入
 
@@ -17,27 +27,34 @@ description: 将目标视频和 SRT/字幕制作成内置 F Remotion 风格的 R
 
 没有字幕但视频包含口播时，先生成时间轴或请求字幕。没有外部参考视频不是缺失条件，不得因此阻塞任务。
 
+字幕文件默认只用于理解语义和建立帧时间轴，不等于要把字幕渲染进成片。除非用户明确要求显示字幕，否则不要创建字幕层；源片已有字幕时尤其不得重复叠加。
+
 ## 必须先加载的内置基准
 
 开始设计前：
 
 1. 读取 [style-preset.md](references/style-preset.md)。这是默认风格的权威规格。
-2. 查看 [style-board.svg](assets/style-board.svg)，确认画面密度和场景差异。
-3. 需要判断速度、入场或阶段切换时，对照风格参数并检查 [MotionScenes.tsx](assets/approved-v4-source/MotionScenes.tsx)。
-4. 编码前参考 [MotionScenes.tsx](assets/approved-v4-source/MotionScenes.tsx) 和 [VideoWithMotion.tsx](assets/approved-v4-source/VideoWithMotion.tsx)。把它们作为确认版本的实现范例，不照抄其中的微信支付文案和固定六段时间。
+2. 读取 [semantic-matching.md](references/semantic-matching.md)，先完成台词语义标注和动效必要性判断。
+3. 查看 [style-board.svg](assets/style-board.svg)，确认画面密度和场景差异。
+4. 需要判断速度、入场或阶段切换时，对照 [style-preset.md](references/style-preset.md) 的运动参数并检查 [MotionScenes.tsx](assets/approved-v4-source/MotionScenes.tsx)。
+5. 编码前参考 [MotionScenes.tsx](assets/approved-v4-source/MotionScenes.tsx) 和 [VideoWithMotion.tsx](assets/approved-v4-source/VideoWithMotion.tsx)。把它们作为确认版本的实现范例，不照抄其中的微信支付文案和固定六段时间。
 
 ## 硬性规则
 
 1. 保留 V4 的视觉质感和运动语言，替换成新视频的真实语义、场景数量和时间点。
-2. 先理解字幕，再从内置场景原型中选择版式；不得给每段机械套同一标题。
-3. 中文承担主要信息。不把英文当装饰，只保留原话、官方名称或必要行业缩写。
-4. 不添加扫描线、常驻进度条、技术网格、假数据、随机字符或无来源微文案。
-5. 一次只显示一个语义组。相邻 `<Sequence>` 默认首尾相接且视觉不交叠。
-6. 关键词、卡片和状态必须在相应台词说到时进入；不得提前演完，也不得完成后长时间无变化。
-7. 长语义组用“阶段切换”更新画面，例如核心概念揭晓后切到定义和实例，不使用无意义循环动画。
-8. 保护人物、字幕和重要物体。V4 默认左侧布局；若目标人物占左侧，可镜像到右侧，但不得改变组件质感。
-9. 所有运动使用 `useCurrentFrame()`、`interpolate()` 和 Remotion easing；不得使用 CSS transition/animation。
-10. 不覆盖用户已确认的旧版本；使用递增输出文件名。
+2. 为每个语义组先判断动效必要性。低价值过渡句、重复信息和已经由人物动作表达清楚的句子可以留白。
+3. 现有原型只是候选。找不到合适原型时，必须从台词关系出发新创，不得为了省事硬套最接近的模板。
+4. 创意必须能用一句话解释其语义作用；解释不出来就删除。
+5. 中文承担主要信息。不把英文当装饰，只保留原话、官方名称或必要行业缩写。
+6. 不添加扫描线、常驻进度条、技术网格、假数据、随机字符或无来源微文案。
+7. 一次只显示一个语义组。相邻 `<Sequence>` 默认首尾相接且视觉不交叠。
+8. 关键词、卡片和状态必须在相应台词说到时进入；不得提前演完，也不得完成后长时间无变化。
+9. 长语义组用“阶段切换”更新画面；阶段变化必须对应台词任务变化，不使用无意义循环动画。
+10. 保护人物、字幕和重要物体。V4 默认左侧布局；若目标人物占左侧，可镜像到右侧，但不得改变组件质感。
+11. 所有运动使用 `useCurrentFrame()`、`interpolate()` 和 Remotion easing；不得使用 CSS transition/animation。
+12. 不覆盖用户已确认的旧版本；使用递增输出文件名。
+13. 先识别用户已经加入的截图、录屏、B-roll、画中画或其他信息画面，并把其完整起止时间标为硬禁区。禁区内不添加任何 Remotion 图层，包括暗部渐变、栏目头和装饰元素，除非用户明确要求覆盖。
+14. SRT/字幕是同步依据，不是默认交付图层。只有用户明确要求时才渲染字幕。
 
 ## 制作流程
 
@@ -48,6 +65,9 @@ description: 将目标视频和 SRT/字幕制作成内置 F Remotion 风格的 R
 - 人物、产品和字幕的位置。
 - 左右哪一侧适合作为动效安全区。
 - 背景亮度是否需要调整预设渐变强度。
+- 用户已插入的截图、录屏、B-roll、画中画和信息卡的起止时间。
+
+把已插入画面的区间记录为 `excludedRanges`。若一个语义组跨越禁区，拆分、延后或留白，不得让 `<Sequence>`、暗部渐变或退场残影进入禁区。
 
 保持 V4 的 16:9 设计比例；其他比例按 [style-preset.md](references/style-preset.md) 的缩放与重排规则处理。
 
@@ -62,12 +82,20 @@ python scripts/srt_to_timeline.py input.srt --fps 60 --format markdown
 按话题转折、因果、步骤、列举和结论合并字幕，不按相等时长切段。为每组先记录：
 
 ```text
-起止帧 | 对应原话 | 本段任务 | 场景原型 | 元素进入帧 | 阶段切换帧 | 退出帧
+起止帧 | 对应原话 | 画面状态/禁区 | 语义关系 | 强调级别 | 视觉必要性 | 复用/变通/新创/留白 | 元素进入帧 | 阶段切换帧 | 退出帧 | 选择理由
 ```
 
-### 3. 选择 V4 场景原型
+### 3. 匹配或创造表现方式
 
-读取 [scene-archetypes.md](references/scene-archetypes.md)，在以下已确认的表现中变通：
+读取 [scene-archetypes.md](references/scene-archetypes.md) 和 [motion-library.md](references/motion-library.md)。按以下顺序决策：
+
+1. 这句是否值得占用画面注意力；不值得则留白。
+2. 它表达的是重点、定义、顺序、因果、对比、并列、边界、状态变化还是数据。
+3. 现有原型是否真正匹配；匹配则复用或变通。
+4. 可选动效能力是否能更准确地表达；只在语义与时长都成立时使用。
+5. 仍不匹配时，根据关系的空间隐喻自行设计并编写新的 Remotion 组件。
+
+已确认的 V4 表现包括但不限于：
 
 - 中文钩子：重大变化或开头核心卖点。
 - 条件分支：前提、门槛和依赖关系。
@@ -80,9 +108,11 @@ python scripts/srt_to_timeline.py input.srt --fps 60 --format markdown
 
 场景数量由新视频决定，不固定为六段。只有真实核心概念才使用大中文标题。
 
+新创前至少提出两个候选：一个克制方案、一个更有表现力的方案。优先选择在不增加无来源信息的前提下，更清楚、更适合当前镜头的那个；两者都不如留白时不做动效。
+
 ### 4. 实现
 
-读取 [implementation.md](references/implementation.md)。优先复制 [SemanticMotionPrimitives.tsx](assets/SemanticMotionPrimitives.tsx) 到项目中，再按目标 Composition 调整布局。
+读取 [implementation.md](references/implementation.md)。优先复制 [SemanticMotionPrimitives.tsx](assets/SemanticMotionPrimitives.tsx) 到项目中，再按目标 Composition 调整布局。基础原语用于保持风格一致，不限制新场景的结构。
 
 - 用 `<Sequence>` 标记每个语义组。
 - 用 `Stage` 在同一组内进行内容阶段切换。
@@ -90,6 +120,7 @@ python scripts/srt_to_timeline.py input.srt --fps 60 --format markdown
 - 用 `InfoPanel` 表达状态、条件、例子和结论。
 - 只有真实顺序、因果或依赖关系才使用 `GrowLine`。
 - 使用预设蓝/绿/红/黄语义色，不随机改变配色。
+- 需要新能力时组合基础原语或新写组件，不得把“库里存在”当作使用理由。
 
 ### 5. 验证并渲染
 
@@ -99,16 +130,24 @@ python scripts/srt_to_timeline.py input.srt --fps 60 --format markdown
 2. 每段的入场中、稳定态、信息补充后、退场前关键帧。
 3. 开头、场景边界与复杂阶段切换的低清连续预览。
 4. 文字裁切、人物遮挡、字幕遮挡、节奏错位、长期静止和场景交叠检查。
-5. 完整渲染并从头到尾解码，确认视频与音轨完整。
+5. 对新增或不确定的设计做“有动效 / 无动效”对照；不能明显提升理解或情绪时删除。
+6. 完整渲染并从头到尾解码，确认视频与音轨完整。
 
-## 外部参考片的例外
+## 学习外部参考片
 
-只有用户明确说“换一种风格”“模仿这个新参考片”时，才读取 [reference-analysis.md](references/reference-analysis.md) 并分析外部参考。否则始终使用内置 V4 预设，不要求或搜索其他参考视频。
+当用户提供参考片并要求学习、扩充能力或更换风格时，读取 [reference-analysis.md](references/reference-analysis.md)。把观察结果拆成视觉语法、运动机制、话题内容和素材依赖四类：
+
+- 只把可迁移的运动机制加入候选能力库。
+- 不自动改变 V4 基线，不复制专有英文、品牌、素材、假数据或依赖原片氛围的装饰。
+- 先在真实视频中验证匹配性。用户确认合适后才提升为推荐能力；不合适时记录为“本次不匹配”，不要为了证明学会了而硬加。
+- 没有外部参考片时，直接使用内置 V4 基线和创造流程，不得向用户索要参考视频。
 
 ## 内置资源
 
 - [style-preset.md](references/style-preset.md)：V4 风格参数与适配规则。
 - [scene-archetypes.md](references/scene-archetypes.md)：字幕语义到版式的选择表。
+- [semantic-matching.md](references/semantic-matching.md)：台词语义标注、动效必要性与匹配决策。
+- [motion-library.md](references/motion-library.md)：可选新动效能力与创造语法，不是必用模板。
 - [implementation.md](references/implementation.md)：Remotion 时间、运动与布局规范。
 - [validation.md](references/validation.md)：预览和最终验收。
 - `scripts/srt_to_timeline.py`：SRT 到帧时间轴工具。
