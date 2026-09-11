@@ -21,19 +21,18 @@ export const OverlayShell: React.FC<{
   children: ReactNode;
   durationInFrames: number;
   name?: string;
+  /** @deprecated Retained for copied-code compatibility; the root canvas stays transparent. */
   accentTint?: string;
+  /** @deprecated Choose layout on child elements instead of adding a sided backdrop. */
   safeSide?: "left" | "right";
+  /** @deprecated Full-frame readability gradients are no longer rendered. */
   gradientStrength?: number;
 }> = ({
   children,
   durationInFrames,
   name = "Semantic overlay",
-  accentTint = "rgba(29,149,255,0.22)",
-  safeSide = "left",
-  gradientStrength = 0.68,
 }) => {
   const frame = useCurrentFrame();
-  const direction = safeSide === "left" ? "90deg" : "270deg";
 
   return (
     <AbsoluteFill
@@ -51,22 +50,6 @@ export const OverlayShell: React.FC<{
         ),
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(${direction}, rgba(3,7,12,${gradientStrength}) 0%, rgba(3,7,12,${gradientStrength * 0.68}) 30%, rgba(3,7,12,0.12) 54%, transparent 78%)`,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(${direction}, ${accentTint} 0%, transparent 58%)`,
-          mixBlendMode: "color",
-          opacity: 0.55,
-        }}
-      />
       {children}
     </AbsoluteFill>
   );
@@ -277,6 +260,99 @@ export const InfoPanel: React.FC<{
     </div>
   </FadeMove>
 );
+
+export type EntitySignalMark = {
+  visual: ReactNode;
+  label: string;
+  at: number;
+};
+
+export const EntitySignalRow: React.FC<{
+  leading: ReactNode;
+  title: string;
+  subtitle?: string;
+  marks?: EntitySignalMark[];
+  start: number;
+  accent?: string;
+  name?: string;
+  style?: CSSProperties;
+}> = ({
+  leading,
+  title,
+  subtitle,
+  marks = [],
+  start,
+  accent = DEFAULT_ACCENT,
+  name = "Sourced entity signal row",
+  style,
+}) => {
+  const frame = useCurrentFrame();
+
+  return (
+    <InfoPanel start={start} accent={accent} name={name} from="-28px 0px" style={style}>
+      <div style={{display: "flex", alignItems: "center", width: "100%"}}>
+        <div
+          style={{
+            width: 52,
+            height: 52,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flex: "0 0 auto",
+            overflow: "hidden",
+            borderRadius: 12,
+            border: `1px solid ${accent}66`,
+            backgroundColor: "rgba(255,255,255,0.07)",
+          }}
+        >
+          {leading}
+        </div>
+        <div style={{marginLeft: 18}}>
+          <div style={{color: "white", fontSize: 28, fontWeight: 900}}>{title}</div>
+          {subtitle ? (
+            <div style={{marginTop: 5, color: "rgba(255,255,255,0.64)", fontSize: 18, fontWeight: 750}}>
+              {subtitle}
+            </div>
+          ) : null}
+        </div>
+        {marks.length > 0 ? (
+          <div style={{display: "flex", gap: 10, marginLeft: "auto"}}>
+            {marks.map((mark, index) => {
+              const progress = interpolate(frame, [mark.at, mark.at + 22], [0, 1], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                easing: EASE_OUT,
+              });
+
+              return (
+                <div
+                  key={`${mark.label}-${index}`}
+                  title={mark.label}
+                  style={{
+                    width: 46,
+                    height: 46,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                    borderRadius: 10,
+                    border: "1px solid rgba(255,255,255,0.10)",
+                    backgroundColor: "rgba(255,255,255,0.07)",
+                    opacity: progress,
+                    translate: `${14 * (1 - progress)}px 0px`,
+                    scale: 0.96 + progress * 0.04,
+                  }}
+                >
+                  {mark.visual}
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+    </InfoPanel>
+  );
+};
 
 export const GrowLine: React.FC<{
   start: number;
@@ -630,6 +706,59 @@ export const CountUpValue: React.FC<{
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
       })}
+      {suffix}
+    </Interactive.Div>
+  );
+};
+
+export const VerifiedRangeCountUp: React.FC<{
+  lower: number;
+  upperTo: number;
+  start: number;
+  upperFrom?: number;
+  durationInFrames?: number;
+  decimals?: number;
+  prefix?: string;
+  separator?: string;
+  suffix?: string;
+  name?: string;
+  style?: CSSProperties;
+}> = ({
+  lower,
+  upperTo,
+  start,
+  upperFrom = lower,
+  durationInFrames = 54,
+  decimals = 0,
+  prefix = "",
+  separator = "–",
+  suffix = "",
+  name = "Verified range count-up",
+  style,
+}) => {
+  const frame = useCurrentFrame();
+  const rawUpper = interpolate(frame, [start, start + durationInFrames], [upperFrom, upperTo], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE_OUT,
+  });
+  const factor = 10 ** decimals;
+  const upper = Math.round(rawUpper * factor) / factor;
+  const format = (value: number) =>
+    value.toLocaleString("zh-CN", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+
+  return (
+    <Interactive.Div
+      name={name}
+      style={{fontFamily: F_REMOTION_FONT, fontVariantNumeric: "tabular-nums", ...style}}
+    >
+      {prefix}
+      {format(lower)}
+      {separator}
+      {format(upper)}
       {suffix}
     </Interactive.Div>
   );

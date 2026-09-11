@@ -18,8 +18,7 @@ const SceneShell: React.FC<{
   children: ReactNode;
   duration: number;
   name: string;
-  tint: string;
-}> = ({children, duration, name, tint}) => {
+}> = ({children, duration, name}) => {
   const frame = useCurrentFrame();
 
   return (
@@ -33,25 +32,6 @@ const SceneShell: React.FC<{
         }),
       }}
     >
-      <Interactive.Div
-        name="Left readability gradient"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(90deg, rgba(3,7,12,0.69) 0%, rgba(3,7,12,0.47) 29%, rgba(3,7,12,0.17) 51%, rgba(3,7,12,0.025) 70%, transparent 80%)",
-        }}
-      />
-      <Interactive.Div
-        name="Subtle color grade"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(90deg, ${tint} 0%, transparent 58%)`,
-          mixBlendMode: "color",
-          opacity: 0.58,
-        }}
-      />
       {children}
     </AbsoluteFill>
   );
@@ -401,7 +381,7 @@ const RightsCard: React.FC<{
 );
 
 export const PaymentAccessScene: React.FC = () => (
-  <SceneShell duration={606} name="01 个人开发者好消息" tint="rgba(0,118,255,0.28)">
+  <SceneShell duration={606} name="01 个人开发者好消息">
     <SceneHeader section="01" title="支付能力更新" micro="个人开发者 · 小程序收款" />
 
     <Stage name="开场中文钩子" start={0} end={286}>
@@ -456,7 +436,7 @@ export const PaymentAccessScene: React.FC = () => (
 );
 
 export const EntryBarrierScene: React.FC = () => (
-  <SceneShell duration={450} name="02 个人开发者现实门槛" tint="rgba(210,41,66,0.20)">
+  <SceneShell duration={450} name="02 个人开发者现实门槛">
     <SceneHeader section="02" title="个人开发者的现实门槛" micro="产品还没完成 · 成本却要前置" />
 
     <FadeMove name="两难说明" start={52} left={92} top={286} width={900}>
@@ -485,7 +465,7 @@ export const EntryBarrierScene: React.FC = () => (
 );
 
 export const AiBlockedScene: React.FC = () => (
-  <SceneShell duration={572} name="03 支付卡在最后一步" tint="rgba(0,151,111,0.20)">
+  <SceneShell duration={572} name="03 支付卡在最后一步">
     <SceneHeader section="03" title="AI 时代的变现断点" micro="会开发 · 却接不了支付" />
     <Connector start={58} left={154} top={350} height={520} color="rgba(29,149,255,0.55)" />
     <StatusStep
@@ -532,7 +512,7 @@ export const AiBlockedScene: React.FC = () => (
 );
 
 export const VirtualPaymentScene: React.FC = () => (
-  <SceneShell duration={778} name="04 个人虚拟支付" tint="rgba(0,118,255,0.27)">
+  <SceneShell duration={778} name="04 个人虚拟支付">
     <SceneHeader section="04" title="新的支付能力来了" micro="个人主体 · 虚拟支付" />
 
     <Stage name="虚拟支付揭晓" start={0} end={218}>
@@ -590,7 +570,7 @@ export const VirtualPaymentScene: React.FC = () => (
 );
 
 export const PhysicalBoundaryScene: React.FC = () => (
-  <SceneShell duration={460} name="05 实体商品边界" tint="rgba(211,42,62,0.22)">
+  <SceneShell duration={460} name="05 实体商品边界">
     <SceneHeader section="05" title="虚拟支付的能力边界" micro="仅限虚拟权益 · 不含实体商品" />
     <FadeMove name="不能售卖实体商品" start={20} left={92} top={286} width={980}>
       <div style={{color: "white", fontSize: 63, fontWeight: 950, letterSpacing: 0}}>
@@ -623,7 +603,7 @@ export const PhysicalBoundaryScene: React.FC = () => (
 );
 
 export const LicenseScene: React.FC = () => (
-  <SceneShell duration={233} name="06 营业执照结论" tint="rgba(0,118,255,0.24)">
+  <SceneShell duration={233} name="06 营业执照结论">
     <SceneHeader section="06" title="实体商品经营场景" micro="需要经营资质" />
     <FadeMove name="实体商品问题" start={18} left={92} top={300} width={900}>
       <div style={{color: "rgba(255,255,255,0.7)", fontSize: 24, fontWeight: 850, letterSpacing: 4}}>
