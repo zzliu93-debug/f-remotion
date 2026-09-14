@@ -1,4 +1,4 @@
 interface:
   display_name: "F Remotion"
-  short_description: "按台词语义匹配并创作 V4 质感 Remotion 动效"
+  short_description: "导演先规划，快速输出 1K/30fps 审片版，再按确认规格交付"
   default_prompt: "使用 $f-remotion。"

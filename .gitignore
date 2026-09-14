@@ -1,6 +1,8 @@
 .DS_Store
 Thumbs.db
 node_modules/
+__pycache__/
+*.py[cod]
 dist/
 *.log
 analysis/
